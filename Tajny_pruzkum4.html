@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tajný průzkum</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#fdf6ec;--card:#fff;--tx:#3b2a1a;--mut:#8a7560;--ac:#c4702a;--ln:#e8d9c4}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#1d1610;--card:#2a2018;--tx:#f3e7d6;--mut:#b09a80;--ac:#e08a42;--ln:#43342a}}
+:root[data-theme="dark"]{--bg:#1d1610;--card:#2a2018;--tx:#f3e7d6;--mut:#b09a80;--ac:#e08a42;--ln:#43342a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:560px;margin:0 auto;padding:20px 16px 40px}
+.card{background:var(--card);border:1px solid var(--ln);border-radius:14px;padding:18px;margin-bottom:14px}
+h1{font-size:1.5rem;margin:0 0 6px}h2{font-size:1rem;margin:0 0 10px}
+p{margin:0 0 10px;color:var(--mut)}
+label.o{display:flex;gap:10px;align-items:center;padding:8px 0;cursor:pointer}
+input[type=text],input[type=password],textarea{width:100%;padding:11px;border:1px solid var(--ln);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit}
+button{background:var(--ac);color:#fff;border:0;border-radius:10px;padding:12px 18px;font:inherit;font-weight:600;cursor:pointer;width:100%}
+button.s{background:transparent;color:var(--ac);border:1px solid var(--ac);margin-top:8px}
+.err{color:#c0392b;min-height:1.4em;margin:8px 0 0}
+.stars{display:flex;gap:6px}.stars button{width:auto;flex:1;background:var(--bg);color:var(--tx);border:1px solid var(--ln);padding:10px 0}
+.stars button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+#qrbox{display:flex;justify-content:center;padding:16px;background:#fff;border-radius:12px}
+#qrbox svg{width:min(280px,80vw);height:auto}
+.hide{display:none}
+.bar{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:.92rem}
+.bar .n{flex:0 0 40%}.bar .t{flex:1;background:var(--bg);border-radius:6px;height:14px;overflow:hidden}
+.bar .t i{display:block;height:100%;background:var(--ac)}.bar .c{flex:0 0 52px;text-align:right;font-weight:600}
+.big{font-size:2.4rem;font-weight:800;color:var(--ac);margin:0}
+.msg{background:var(--bg);border:1px solid var(--ln);border-radius:10px;padding:10px;margin:6px 0;white-space:pre-wrap;color:var(--tx)}
+</style>
+</head>
+<body>
+<main>
+
+<section id="gate" class="card">
+  <h1>🍪 Tajný průzkum</h1>
+  <p>Pro vstup dokonči větu:</p>
+  <div style="font-size:1.6rem;font-weight:800;margin:4px 0 10px">Let him …</div>
+  <input type="text" id="pw" placeholder="dopiš slovo" style="font-size:1.3rem;font-weight:700" autocomplete="off" autocapitalize="none">
+  <div class="err" id="gerr"></div>
+  <button id="enter">Vstoupit</button>
+</section>
+
+<section id="qrview" class="card hide">
+  <h1>QR kód průzkumu</h1>
+  <p>Vytiskni nebo ukaž. Po naskenování se otevře dotazník a zeptá se na tajné slovo.</p>
+  <div id="qrbox"></div>
+</section>
+
+<form id="survey" class="hide" onsubmit="return false">
+  <div class="card"><h1>Jaké sladkosti by tě bavily?</h1><p>Anonymní, zabere to minutu.</p></div>
+
+  <div class="card"><h2>1. Jak často bys něco koupil/a?</h2>
+    <label class="o"><input type="radio" name="freq" value="Každý den"> Každý den</label>
+    <label class="o"><input type="radio" name="freq" value="Párkrát týdně"> Párkrát týdně</label>
+    <label class="o"><input type="radio" name="freq" value="Jednou týdně"> Jednou týdně</label>
+    <label class="o"><input type="radio" name="freq" value="Spíš málokdy"> Spíš málokdy</label>
+  </div>
+
+  <div class="card"><h2>2. Co by sis koupil/a? (víc možností)</h2>
+    <label class="o"><input type="checkbox" name="what" value="Sušenky"> Sušenky</label>
+    <label class="o"><input type="checkbox" name="what" value="Chipsy"> Chipsy</label>
+    <label class="o"><input type="checkbox" name="what" value="Bonbóny"> Bonbóny</label>
+    <label class="o"><input type="checkbox" name="what" value="Čokoláda a tyčinky"> Čokoláda a tyčinky</label>
+    <label class="o"><input type="checkbox" name="what" value="Nápoje"> Nápoje</label>
+    <label class="o"><input type="checkbox" name="what" value="Žvýkačky"> Žvýkačky</label>
+  </div>
+
+  <div class="card"><h2>3. Kolik jsi ochoten/ochotna dát za kus?</h2>
+    <label class="o"><input type="radio" name="price" value="do 15 Kč"> do 15 Kč</label>
+    <label class="o"><input type="radio" name="price" value="15–25 Kč"> 15–25 Kč</label>
+    <label class="o"><input type="radio" name="price" value="25–40 Kč"> 25–40 Kč</label>
+    <label class="o"><input type="radio" name="price" value="víc než 40 Kč"> víc než 40 Kč</label>
+  </div>
+
+  <div class="card"><h2>4. Kdy by se ti nákup hodil?</h2>
+    <label class="o"><input type="radio" name="when" value="Ráno před školou"> Ráno před školou</label>
+    <label class="o"><input type="radio" name="when" value="O velké přestávce"> O velké přestávce</label>
+    <label class="o"><input type="radio" name="when" value="Po škole"> Po škole</label>
+  </div>
+
+  <div class="card"><h2>5. Jak by sis to nejradši vyzvedl/a?</h2>
+    <label class="o"><input type="radio" name="pickup" value="Hned na místě"> Hned na místě</label>
+    <label class="o"><input type="radio" name="pickup" value="Předem objednat zprávou"> Předem objednat zprávou</label>
+    <label class="o"><input type="radio" name="pickup" value="Domluvit si schůzku"> Domluvit si schůzku</label>
+  </div>
+
+  <div class="card"><h2>6. Jak moc by tě to zajímalo? (1 = vůbec, 5 = moc)</h2>
+    <div class="stars" id="stars"></div>
+  </div>
+
+  <div class="card"><h2>7. Máš nějaký dotaz?</h2>
+    <textarea id="ask" rows="3" placeholder="Na co by ses chtěl/a zeptat?"></textarea>
+  </div>
+
+  <div class="card"><h2>8. Máš nápad nebo přání?</h2>
+    <textarea id="idea" rows="3" placeholder="Např. oblíbená značka…"></textarea>
+  </div>
+
+  <button id="send">Odeslat</button>
+  <div class="err" id="serr"></div>
+</form>
+
+<section id="stats" class="hide"></section>
+
+<section id="done" class="card hide">
+  <h1>Díky! 🎉</h1>
+  <p id="donemsg">Odpovědi jsou odeslané.</p>
+  <textarea id="copybox" rows="6" class="hide" readonly></textarea>
+  <button class="s hide" id="copybtn">Zkopírovat odpovědi</button>
+</section>
+
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+var START = "Let him "; // začátek věty, který už je v poli napsaný
+var PASSWORD = "cook"; // slovo, které musí dopsat
+var ADMIN = "mravenec"; // tajné slovo pro statistiky
+function norm(t){return t.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]/g,"")}
+var $ = function(id){return document.getElementById(id)};
+var rating = 0;
+
+function show(id){["gate","qrview","survey","done","stats"].forEach(function(x){$(x).classList.toggle("hide", x!==id)})}
+
+function route(){
+  if(location.hash === "#qr"){
+    show("qrview");
+    try{
+      var url = location.href.split("#")[0];
+      var q = qrcode(0,"M"); q.addData(url); q.make();
+      $("qrbox").innerHTML = q.createSvgTag(6,0);
+    }catch(e){ $("qrbox").textContent = "QR se nepodařilo vytvořit."; }
+  } else show("gate");
+}
+route();
+window.addEventListener("hashchange", route);
+
+function esc(t){return String(t).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+var Q=[["freq","1. Jak často by koupil/a",["Každý den","Párkrát týdně","Jednou týdně","Spíš málokdy"]],
+["what","2. Co by si koupil/a",["Sušenky","Chipsy","Bonbóny","Čokoláda a tyčinky","Nápoje","Žvýkačky"]],
+["price","3. Cena za kus",["do 15 Kč","15–25 Kč","25–40 Kč","víc než 40 Kč"]],
+["when","4. Kdy se nákup hodí",["Ráno před školou","O velké přestávce","Po škole"]],
+["pickup","5. Vyzvednutí",["Hned na místě","Předem objednat zprávou","Domluvit si schůzku"]]];
+async function showStats(){
+  show("stats");
+  var el=$("stats"); el.innerHTML='<div class="card"><p>Načítám…</p></div>';
+  var rows=[];
+  try{
+    var db=await claude.use("db");
+    if(!db) throw new Error("nodb");
+    var snap=await db.collection("responses").get();
+    rows=snap.docs.map(function(d){return d.data()});
+  }catch(e){
+    el.innerHTML='<div class="card"><h1>Statistiky</h1><p>Nepodařilo se načíst data. Otevři stránku přihlášený/á ve svém účtu Claude (jako vlastník).</p></div>'; return;
+  }
+  var h='<div class="card"><h1>📊 Statistiky</h1><p>Počet vyplněných průzkumů</p><p class="big">'+rows.length+'</p></div>';
+  Q.forEach(function(q){
+    var cnt={}; q[2].forEach(function(o){cnt[o]=0});
+    rows.forEach(function(r){var v=r[q[0]]; (Array.isArray(v)?v:[v]).forEach(function(x){if(x in cnt)cnt[x]++})});
+    h+='<div class="card"><h2>'+q[1]+'</h2>';
+    q[2].forEach(function(o){var c=cnt[o],p=rows.length?Math.round(c/rows.length*100):0;
+      h+='<div class="bar"><span class="n">'+esc(o)+'</span><span class="t"><i style="width:'+p+'%"></i></span><span class="c">'+c+'</span></div>'});
+    h+='</div>';
+  });
+  var rc=[0,0,0,0,0],sum=0,nr=0;
+  rows.forEach(function(r){if(r.interest>=1&&r.interest<=5){rc[r.interest-1]++;sum+=r.interest;nr++}});
+  h+='<div class="card"><h2>6. Zájem (1–5)'+(nr?' – průměr '+(sum/nr).toFixed(1):'')+'</h2>';
+  rc.forEach(function(c,i){var p=rows.length?Math.round(c/rows.length*100):0;
+    h+='<div class="bar"><span class="n">'+(i+1)+'</span><span class="t"><i style="width:'+p+'%"></i></span><span class="c">'+c+'</span></div>'});
+  h+='</div>';
+  [["ask","7. Dotazy"],["idea","8. Nápady a přání"]].forEach(function(f){
+    var list=rows.map(function(r){return r[f[0]]}).filter(Boolean);
+    h+='<div class="card"><h2>'+f[1]+' ('+list.length+')</h2>'+(list.length?list.map(function(t){return '<div class="msg">'+esc(t)+'</div>'}).join(""):'<p>Zatím nic.</p>')+'</div>';
+  });
+  h+='<button class="s" id="refresh">Obnovit</button>';
+  el.innerHTML=h; $("refresh").onclick=showStats;
+}
+function tryEnter(){
+  if(norm($("pw").value)===norm(ADMIN)){ showStats(); return; }
+  if(norm($("pw").value) === norm(START+PASSWORD) || norm($("pw").value) === norm(PASSWORD)){ show("survey"); }
+  else { $("gerr").textContent = "To není ono, zkus to znovu."; }
+}
+$("enter").onclick = tryEnter;
+$("pw").addEventListener("keydown", function(e){ if(e.key==="Enter") tryEnter(); });
+
+for(var i=1;i<=5;i++){
+  (function(n){
+    var b = document.createElement("button");
+    b.type="button"; b.textContent=n;
+    b.onclick=function(){ rating=n; Array.prototype.forEach.call($("stars").children,function(c,k){c.classList.toggle("on",k===n-1)}) };
+    $("stars").appendChild(b);
+  })(i);
+}
+
+function vals(name){return Array.prototype.map.call(document.querySelectorAll('input[name="'+name+'"]:checked'),function(x){return x.value})}
+
+$("send").onclick = async function(){
+  var data = {
+    freq: vals("freq")[0]||"", what: vals("what"), price: vals("price")[0]||"",
+    when: vals("when")[0]||"", pickup: vals("pickup")[0]||"", interest: rating,
+    ask: $("ask").value.trim(), idea: $("idea").value.trim()
+  };
+  if(!data.freq || !data.what.length){ $("serr").textContent = "Vyplň prosím aspoň první dvě otázky."; return; }
+  $("serr").textContent = "";
+  var saved = false;
+  try{
+    var db = await claude.use("db");
+    if(db){
+      await db.collection("responses").doc("r"+Date.now()+Math.random().toString(36).slice(2,6)).set(data);
+      saved = true;
+    }
+  }catch(e){}
+  show("done");
+  if(!saved){
+    $("donemsg").textContent = "Odpovědi se nepodařilo uložit online. Zkopíruj je a pošli tomu, kdo průzkum dělá.";
+    var txt = "Četnost: "+data.freq+"\nCo: "+data.what.join(", ")+"\nCena: "+data.price+"\nKdy: "+data.when+"\nVyzvednutí: "+data.pickup+"\nZájem: "+data.interest+"/5\nDotaz: "+data.ask+"\nNápad: "+data.idea;
+    $("copybox").value = txt; $("copybox").classList.remove("hide"); $("copybtn").classList.remove("hide");
+    $("copybtn").onclick = function(){ $("copybox").select(); try{navigator.clipboard.writeText(txt)}catch(e){document.execCommand("copy")} };
+  }
+};
+</script>
+</body>
+</html>
